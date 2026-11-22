@@ -17,9 +17,3 @@ updates:
       # jsdom 30 excludes the declared Node 24.0 minimum.
       - dependency-name: jsdom
         versions: [">=30.0.0"]
-  - package-ecosystem: github-actions
-    directory: /
-    schedule:
-      interval: weekly
-    cooldown:
-      default-days: 2
