@@ -1,0 +1,41 @@
+---
+import type { CollectionEntry } from "astro:content";
+import type { Page } from "astro";
+import IconArrowLeft from "@/assets/icons/IconArrowLeft.svg";
+import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
+import LinkButton from "./LinkButton.astro";
+
+export interface Props {
+  page: Page<CollectionEntry<"blog">>;
+}
+
+const { page } = Astro.props;
+---
+
+{
+  page.lastPage > 1 && (
+    <nav class="mt-auto mb-8 flex items-center justify-center gap-3" aria-label="Pagination">
+      <LinkButton
+        disabled={!page.url.prev}
+        href={page.url.prev as string}
+        class:list={["min-h-[44px] min-w-[44px] px-4 py-2 select-none inline-flex items-center justify-center rounded-md border border-border bg-surface text-foreground/80 hover:text-accent hover:border-accent font-medium", { "opacity-40 pointer-events-none": !page.url.prev }]}
+        ariaLabel="Previous"
+      >
+        <IconArrowLeft class="inline-block mr-1.5 size-4" />
+        Prev
+      </LinkButton>
+      <span class="text-sm font-medium text-muted px-2">
+        {page.currentPage} / {page.lastPage}
+      </span>
+      <LinkButton
+        disabled={!page.url.next}
+        href={page.url.next as string}
+        class:list={["min-h-[44px] min-w-[44px] px-4 py-2 select-none inline-flex items-center justify-center rounded-md border border-border bg-surface text-foreground/80 hover:text-accent hover:border-accent font-medium", { "opacity-40 pointer-events-none": !page.url.next }]}
+        ariaLabel="Next"
+      >
+        Next
+        <IconArrowRight class="inline-block ml-1.5 size-4" />
+      </LinkButton>
+    </nav>
+  )
+}

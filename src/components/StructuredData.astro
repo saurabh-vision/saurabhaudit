@@ -1,0 +1,7 @@
+---
+import { structuredDataJson, type StructuredDataProps } from "@/utils/structuredData";
+export type Props = StructuredDataProps;
+const json = structuredDataJson(Astro.props);
+---
+
+{json ? <script is:inline type="application/ld+json" set:html={json} /> : null}

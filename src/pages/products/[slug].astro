@@ -1,0 +1,263 @@
+---
+import { getCollection, render, type CollectionEntry } from "astro:content";
+import { Image } from "astro:assets";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import NewsletterForm from "@/components/NewsletterForm.astro";
+import RelatedContent from "@/components/RelatedContent.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import { getBreadcrumbItems } from "@/utils/breadcrumbs";
+import { getRelatedPool } from "@/utils/buildRelatedPool";
+import { getProductLinks, type ProductLink } from "@/utils/getProductLinks";
+import { getProductPath } from "@/utils/getProductPath";
+import { getRelatedContent } from "@/utils/getRelatedContent";
+import {
+  getProductStatusBadgeClass,
+  getProductStatusLabel,
+  getProductTypeLabel,
+} from "@/utils/productLabels";
+import productFilter from "@/utils/productFilter";
+import { slugifyStr } from "@/utils/slugify";
+
+export interface Props {
+  product: CollectionEntry<"products">;
+}
+
+export async function getStaticPaths() {
+  const products = await getCollection("products", productFilter);
+  return products.map((product) => {
+    const slug = slugifyStr(product.id.split("/").at(-1)?.replace(/\.(md|mdx)$/, "") ?? product.id);
+    return {
+      params: { slug },
+      props: { product },
+    };
+  });
+}
+
+const { product } = Astro.props;
+const {
+  title,
+  description,
+  type,
+  status,
+  links: rawLinks,
+  screenshots = [],
+  tags = [],
+  ogImage: initOgImage,
+} = product.data;
+
+const { Content } = await render(product);
+
+const statusLabel = getProductStatusLabel(status);
+const typeLabel = getProductTypeLabel(type);
+const badgeClass = getProductStatusBadgeClass(status);
+
+const { links, primaryLink } = getProductLinks(rawLinks);
+const allActionLinks: ProductLink[] = primaryLink
+  ? [primaryLink, ...links.filter((l) => l.key !== primaryLink.key)]
+  : links;
+
+function getAriaLabel(link: ProductLink): string {
+  if (link.kind === "store") {
+    return `Get ${title} on ${link.label}`;
+  }
+  if (link.kind === "github") {
+    return `View ${title} source on GitHub`;
+  }
+  if (link.kind === "docs") {
+    return `View documentation for ${title}`;
+  }
+  if (link.kind === "website") {
+    return `Visit website for ${title}`;
+  }
+  return `Open ${link.label} for ${title}`;
+}
+
+// Thin-page guard: if status is building or coming-soon AND the body renders no content, set noindex, follow
+const hasContent = Boolean(product.body && product.body.trim().length > 0);
+const isThinPage =
+  (status === "building" || status === "coming-soon") && !hasContent;
+
+let ogImageUrl: string | undefined;
+if (typeof initOgImage === "string") {
+  ogImageUrl = initOgImage;
+} else if (initOgImage?.src) {
+  ogImageUrl = initOgImage.src;
+}
+const slug = slugifyStr(product.id.split("/").at(-1)?.replace(/\.(md|mdx)$/, "") ?? product.id);
+const defaultProductOg = `/products/${slug}/index.png`;
+const resolvedOgImage = ogImageUrl
+  ? (ogImageUrl.startsWith("http") ? ogImageUrl : new URL(ogImageUrl, Astro.site ?? Astro.url.origin).href)
+  : new URL(defaultProductOg, Astro.site ?? Astro.url.origin).href;
+
+const productUrl = new URL(getProductPath(product.id), Astro.site ?? Astro.url.origin);
+
+const pool = await getRelatedPool();
+const relatedItems = getRelatedContent(
+  {
+    type: "Product",
+    slug,
+    title,
+    tags,
+    pubDatetime: product.data.pubDatetime,
+  },
+  pool,
+  3,
+);
+---
+
+<Layout
+  title={`${title} | ${SITE.title}`}
+  description={description}
+  canonicalURL={productUrl.href}
+  ogImage={resolvedOgImage}
+  ogType="website"
+  noindex={isThinPage}
+>
+  <StructuredData
+    type="ProductDetail"
+    noindex={isThinPage}
+    data={{
+      title,
+      description,
+      url: productUrl.href,
+      type,
+      pubDatetime: product.data.pubDatetime,
+      image: resolvedOgImage,
+      sameAs: allActionLinks.map((l) => l.href),
+    }}
+  />
+  <Header />
+
+  <main
+    id="main-content"
+    class="reading-container pb-12"
+    data-pagefind-body={!isThinPage ? "" : undefined}
+    data-pagefind-ignore={isThinPage ? "" : undefined}
+    data-pagefind-filter={!isThinPage ? "type:Product" : undefined}
+    data-pagefind-meta={!isThinPage ? "type:Product" : undefined}
+  >
+    <Breadcrumbs
+      items={getBreadcrumbItems("product", { title, url: productUrl.href })}
+      class="mt-6 mb-4"
+    />
+
+    <header class="pb-6 border-b border-border">
+      <div class="flex flex-wrap items-center gap-2 mb-3">
+        <span class="text-xs uppercase tracking-wider text-muted font-medium">
+          {typeLabel}
+        </span>
+        <span
+          class:list={[
+            "inline-block rounded-full px-2.5 py-0.5 text-xs uppercase tracking-wider font-medium",
+            badgeClass,
+          ]}
+        >
+          {statusLabel}
+        </span>
+      </div>
+
+      <h1
+        class="text-3xl font-bold tracking-tight sm:text-4xl text-foreground"
+        data-pagefind-meta="title"
+      >
+        {title}
+      </h1>
+
+      <p class="mt-4 text-base sm:text-lg text-foreground/80 leading-relaxed">
+        {description}
+      </p>
+
+      {
+        allActionLinks.length > 0 && (
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            {allActionLinks.map((link, idx) => {
+              const isPrimary = idx === 0 && primaryLink && link.key === primaryLink.key;
+              return (
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener"
+                  aria-label={getAriaLabel(link)}
+                  class:list={[
+                    "inline-flex items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium min-h-[44px] focus-outline transition-colors",
+                    isPrimary
+                      ? "bg-accent font-semibold text-accent-contrast hover:opacity-90 shadow-xs"
+                      : "border border-border bg-surface-2 text-foreground/90 hover:border-accent hover:text-accent",
+                  ]}
+                >
+                  {link.label}
+                </a>
+              );
+            })}
+          </div>
+        )
+      }
+    </header>
+
+    {
+      screenshots && screenshots.length > 0 && (
+        <section class="my-8 space-y-4">
+          {screenshots.map((screenshot) => {
+            const isImageObj =
+              typeof screenshot === "object" && screenshot !== null && "src" in (screenshot as Record<string, unknown>);
+            return (
+              <div class="overflow-hidden rounded-lg border border-border/80 shadow-xs">
+                {isImageObj ? (
+                  <Image
+                    src={screenshot as any}
+                    alt={`Screenshot of ${title}`}
+                    width={800}
+                    height={450}
+                    loading="lazy"
+                    class="w-full h-auto object-cover"
+                  />
+                ) : (
+                  <img
+                    src={screenshot as string}
+                    alt={`Screenshot of ${title}`}
+                    width="800"
+                    height="450"
+                    loading="lazy"
+                    class="w-full h-auto object-cover"
+                  />
+                )}
+              </div>
+            );
+          })}
+        </section>
+      )
+    }
+
+    {
+      hasContent && (
+        <article id="article" class="prose mt-8 w-full max-w-none">
+          <Content />
+        </article>
+      )
+    }
+
+    {
+      tags && tags.length > 0 && (
+        <div class="my-8 flex flex-wrap gap-2 pt-4 border-t border-border">
+          {tags.map((tag: string) => (
+            <span class="inline-block px-2.5 py-1 text-xs rounded border border-border bg-muted/40 text-foreground/80">
+              #{tag}
+            </span>
+          ))}
+        </div>
+      )
+    }
+
+    <RelatedContent items={relatedItems} />
+
+    <div class="my-10">
+      <NewsletterForm variant="card" />
+    </div>
+  </main>
+
+  <Footer />
+</Layout>

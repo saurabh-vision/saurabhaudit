@@ -1,0 +1,189 @@
+---
+import { getCollection } from "astro:content";
+import IconArchive from "@/assets/icons/IconArchive.svg";
+import IconMenuDeep from "@/assets/icons/IconMenuDeep.svg";
+import IconMoon from "@/assets/icons/IconMoon.svg";
+import IconSearch from "@/assets/icons/IconSearch.svg";
+import IconSunHigh from "@/assets/icons/IconSunHigh.svg";
+import IconX from "@/assets/icons/IconX.svg";
+import { SITE } from "@/config";
+import noteFilter from "@/utils/noteFilter";
+import productFilter from "@/utils/productFilter";
+import LinkButton from "./LinkButton.astro";
+
+const visibleProducts = await getCollection("products", productFilter);
+const hasProducts = visibleProducts.length > 0;
+
+const listedNotes = await getCollection("notes", noteFilter);
+const hasNotes = listedNotes.length > 0;
+
+const { pathname } = Astro.url;
+
+// Remove trailing slash from current pathname if exists
+const currentPath = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
+
+const isActive = (path: string) => {
+  const currentPathArray = currentPath.split("/").filter((p) => p.trim());
+  const pathArray = path.split("/").filter((p) => p.trim());
+
+  return currentPath === path || currentPathArray[0] === pathArray[0];
+};
+---
+
+<header
+  data-pagefind-ignore
+  class="sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur-md transition-colors"
+>
+  <a
+    id="skip-to-content"
+    href="#main-content"
+    class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-4 focus:py-2.5 focus:text-accent focus:ring-2 focus:ring-accent focus:shadow-lg"
+  >
+    Skip to content
+  </a>
+  <div
+    id="nav-container"
+    class="wide-container flex flex-col md:flex-row md:items-center md:justify-between"
+  >
+    <div
+      id="top-nav-wrap"
+      class="flex w-full items-center justify-between py-3 md:w-auto md:py-4"
+    >
+      <a
+        href="/"
+        class="flex min-h-[44px] items-center text-xl font-bold tracking-tight text-foreground transition-colors hover:text-accent focus-visible:ring-2 focus-visible:ring-accent focus-visible:rounded"
+      >
+        {SITE.title}
+      </a>
+      <button
+        id="menu-btn"
+        class="focus-outline flex size-11 items-center justify-center rounded-md p-2 text-foreground hover:bg-surface-2 hover:text-accent md:hidden"
+        aria-label="Open Menu"
+        aria-expanded="false"
+        aria-controls="menu-items"
+      >
+        <IconX id="close-icon" class="hidden size-6" />
+        <IconMenuDeep id="menu-icon" class="size-6" />
+      </button>
+    </div>
+
+    <nav
+      id="nav-menu"
+      aria-label="Main Navigation"
+      class="flex w-full flex-col items-center md:w-auto md:flex-row md:justify-end md:space-x-1"
+    >
+      <ul
+        id="menu-items"
+        class:list={[
+          "w-full flex-col gap-1 pb-4 pt-2 md:flex md:w-auto md:flex-row md:items-center md:gap-1 md:py-0",
+          "hidden md:flex",
+        ]}
+      >
+        <li>
+          <a
+            href="/posts"
+            class:list={[
+              "flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md px-3.5 py-2 text-sm font-medium transition-colors hover:bg-surface-2 hover:text-accent",
+              { "active-nav text-accent": isActive("/posts") },
+            ]}
+          >
+            Posts
+          </a>
+        </li>
+        {
+          hasProducts && (
+            <li>
+              <a
+                href="/products"
+                class:list={[
+                  "flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md px-3.5 py-2 text-sm font-medium transition-colors hover:bg-surface-2 hover:text-accent",
+                  { "active-nav text-accent": isActive("/products") },
+                ]}
+              >
+                Products
+              </a>
+            </li>
+          )
+        }
+        {
+          hasNotes && (
+            <li>
+              <a
+                href="/notes"
+                class:list={[
+                  "flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md px-3.5 py-2 text-sm font-medium transition-colors hover:bg-surface-2 hover:text-accent",
+                  { "active-nav text-accent": isActive("/notes") },
+                ]}
+              >
+                Notes
+              </a>
+            </li>
+          )
+        }
+
+        <li>
+          <a
+            href="/about"
+            class:list={[
+              "flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md px-3.5 py-2 text-sm font-medium transition-colors hover:bg-surface-2 hover:text-accent",
+              { "active-nav text-accent": isActive("/about") },
+            ]}
+          >
+            About
+          </a>
+        </li>
+
+        {
+          SITE.showArchives && (
+            <li>
+              <LinkButton
+                href="/archives"
+                class:list={[
+                  "flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md p-2 transition-colors hover:bg-surface-2 hover:text-accent",
+                  { "active-nav text-accent": isActive("/archives") },
+                ]}
+                ariaLabel="archives"
+                title="Archives"
+              >
+                <IconArchive class="size-5" />
+                <span class="sr-only">Archives</span>
+              </LinkButton>
+            </li>
+          )
+        }
+
+        <li class="flex items-center justify-center">
+          <LinkButton
+            href="/search"
+            class:list={[
+              "flex min-h-[44px] min-w-[44px] items-center justify-center rounded-md p-2.5 text-foreground transition-colors hover:bg-surface-2 hover:text-accent",
+              { "active-nav text-accent": isActive("/search") },
+            ]}
+            ariaLabel="search"
+            title="Search"
+          >
+            <IconSearch class="size-5" />
+            <span class="sr-only">Search</span>
+          </LinkButton>
+        </li>
+
+        {
+          SITE.lightAndDarkMode && (
+            <li class="flex items-center justify-center">
+              <button
+                id="theme-btn"
+                class="relative flex size-11 items-center justify-center rounded-md p-2.5 text-foreground transition-colors hover:bg-surface-2 hover:text-accent"
+                title="Toggles light & dark"
+                aria-label="auto"
+                aria-live="polite"
+              >
+                <IconMoon class="absolute size-5 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+                <IconSunHigh class="absolute size-5 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+              </button>
+            </li>
+          )
+        }
+      </ul>
+    </nav>
+  </div>
+</header>

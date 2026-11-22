@@ -1,0 +1,80 @@
+{
+  "name": "saurabhaudit-com",
+  "version": "0.0.1",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "sync": "node scripts/sync-content.mjs",
+    "build": "pnpm run sync && astro build && pagefind --site dist",
+    "build:check": "pnpm run sync && astro check && pnpm run test && pnpm run build && pnpm run test:build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "lint": "oxlint --deny-warnings --import-plugin src astro.config.mjs public/toggle-theme.js",
+    "lint:fix": "oxlint --fix --deny-warnings --import-plugin src astro.config.mjs public/toggle-theme.js",
+    "lint:posts": "node scripts/lint-posts.mjs",
+    "new": "node scripts/new-writing.mjs",
+    "format": "oxfmt --write \"**/*.{js,mjs,cjs,ts,tsx,json}\"",
+    "format:check": "oxfmt --check \"**/*.{js,mjs,cjs,ts,tsx,json}\"",
+    "check": "pnpm run sync && pnpm run format:check && pnpm run lint && pnpm run lint:posts",
+    "check:fix": "pnpm run sync && pnpm run format && pnpm run lint:fix",
+    "prepare": "husky",
+    "test": "pnpm run sync && node --test tests/*.test.mjs",
+    "test:build": "pnpm run sync && node --test --test-concurrency=1 tests/build/*.test.mjs",
+    "test:products": "node scripts/test-products.mjs",
+    "test:notes": "node scripts/test-notes.mjs",
+    "preflight": "node scripts/preflight.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@astrojs/markdown-remark": "^7.3.8",
+    "@astrojs/mdx": "^8.1.5",
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.4",
+    "@ibm/plex-mono": "^2.5.0",
+    "@pagefind/default-ui": "^1.6.0",
+    "@resvg/resvg-js": "^2.6.2",
+    "@tailwindcss/vite": "^4.3.5",
+    "astro": "^7.4.11",
+    "dayjs": "^1.11.23",
+    "lodash.kebabcase": "^4.1.1",
+    "pagefind": "^1.6.0",
+    "reading-time": "^1.5.0",
+    "remark-collapse": "^0.1.2",
+    "remark-toc": "^9.0.0",
+    "satori": "^0.63.2",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^6.0.3",
+    "unist-util-visit": "^5.2.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.20",
+    "@types/lodash.kebabcase": "^4.1.9",
+    "commitizen": "^4.3.2",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^17.6.0",
+    "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,tsx,json}": [
+      "oxfmt --write"
+    ],
+    "*.{js,ts,tsx}": [
+      "oxlint --fix"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "packageManager": "pnpm@10.5.2"
+}

@@ -1,0 +1,79 @@
+---
+import { getCollection } from "astro:content";
+import type { GetStaticPathsOptions } from "astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Card from "@/components/Card.astro";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import Pagination from "@/components/Pagination.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import Main from "@/layouts/Main.astro";
+import { getBreadcrumbItems } from "@/utils/breadcrumbs";
+import { getPath } from "@/utils/getPath";
+import getPostsByTag from "@/utils/getPostsByTag";
+import getUniqueTags from "@/utils/getUniqueTags";
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const posts = await getCollection("blog");
+  const tags = getUniqueTags(posts);
+
+  return tags.flatMap(({ tag, tagName }) => {
+    const tagPosts = getPostsByTag(posts, tag);
+
+    return paginate(tagPosts, {
+      params: { tag },
+      props: { tagName, postCount: tagPosts.length },
+      pageSize: SITE.postPerPage,
+    });
+  });
+}
+
+const params = Astro.params;
+const { tag } = params;
+const { page, tagName, postCount } = Astro.props;
+
+// Tag pages with fewer than 2 posts get noindex, follow
+const isLowContentTag = postCount < 2;
+---
+
+<Layout title={`Tag: ${tagName} | ${SITE.title}`} noindex={isLowContentTag}>
+  <StructuredData
+    type="TagCollection"
+    noindex={isLowContentTag}
+    data={{
+      tagName: String(tagName),
+      tag: String(tag),
+      url: new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href,
+      items: page.data.map((p) => ({
+        name: p.data.title,
+        url: new URL(getPath(p.id, p.filePath), Astro.site ?? Astro.url.origin).href,
+      })),
+      section: "blog",
+    }}
+  />
+  <Header />
+  <Breadcrumbs
+    items={getBreadcrumbItems("tag", {
+      tagName: String(tagName),
+      tag: String(tag),
+      url: new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin).href,
+    })}
+    class="mx-auto max-w-3xl px-4 mt-6"
+  />
+  <Main
+    pageTitle={[`Tag:`, `${tagName}`]}
+    titleTransition={tag}
+    pageDesc={`All the articles with the tag "${tagName}".`}
+  >
+    <h1 slot="title" transition:name={tag}>{`Tag:${tag}`}</h1>
+    <ul>
+      {page.data.map((data) => <Card {...data} />)}
+    </ul>
+  </Main>
+
+  <Pagination {page} />
+
+  <Footer noMarginTop={page.lastPage > 1} />
+</Layout>

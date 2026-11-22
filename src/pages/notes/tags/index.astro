@@ -1,0 +1,57 @@
+---
+import { getCollection } from "astro:content";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import { getBreadcrumbItems } from "@/utils/breadcrumbs";
+import getUniqueNoteTags from "@/utils/getUniqueNoteTags";
+import noteFilter from "@/utils/noteFilter";
+
+const notes = await getCollection("notes", noteFilter);
+const tags = getUniqueNoteTags(notes);
+const hasTags = tags.length > 0;
+---
+
+<Layout
+  title={`Note Tags | ${SITE.title}`}
+  description="All tags used across micro-notes and TILs."
+  canonicalURL={new URL("/notes/tags/", Astro.site ?? Astro.url.origin).href}
+  noindex={!hasTags}
+>
+  <Header />
+
+  <main id="main-content" data-pagefind-ignore class="mx-auto w-full max-w-3xl px-4 pb-4">
+    <Breadcrumbs items={getBreadcrumbItems("note-tags-list")} class="mt-6 mb-2" />
+
+    <h1 class="text-2xl font-semibold sm:text-3xl mt-4">Note Tags</h1>
+    <p class="mt-2 mb-6 italic">Browse notes by topic and tag</p>
+
+    {
+      !hasTags ? (
+        <p class="py-12 text-center text-foreground/70">
+          No note tags available yet.
+        </p>
+      ) : (
+        <ul class="flex flex-wrap gap-3 my-8">
+          {tags.map(({ tag, tagName, count }) => (
+            <li>
+              <a
+                href={`/notes/tags/${tag}/`}
+                class="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground/80 hover:border-accent hover:text-accent focus-outline"
+              >
+                <span>#{tagName}</span>
+                <span class="rounded bg-muted/60 px-1.5 py-0.5 text-xs text-foreground/60">
+                  {count}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </main>
+
+  <Footer />
+</Layout>

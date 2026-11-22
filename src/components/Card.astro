@@ -1,0 +1,66 @@
+---
+import { Image } from "astro:assets";
+import type { CollectionEntry } from "astro:content";
+import { getPath } from "@/utils/getPath";
+import { getReadingMetrics } from "@/utils/readingTime";
+import { slugifyStr } from "@/utils/slugify";
+import Datetime from "./Datetime.astro";
+
+export interface Props extends CollectionEntry<"blog"> {
+  variant?: "h2" | "h3";
+  showImage?: boolean;
+}
+
+const { variant = "h2", data, id, filePath, body, showImage = true } = Astro.props;
+
+const { title, description, pubDatetime, modDatetime, timezone, heroImage } = data;
+const { label: readingTime } = getReadingMetrics(body ?? "");
+
+const headerProps = {
+  style: { viewTransitionName: slugifyStr(title) },
+  class: "text-lg font-medium decoration-dashed hover:underline",
+};
+---
+
+<li class="py-6 border-b border-border/60 last:border-b-0 first:pt-2">
+  <div>
+    <a
+      href={getPath(id, filePath)}
+      class="inline-block text-lg sm:text-xl font-semibold text-foreground hover:text-accent transition-colors underline-offset-4 focus-visible:no-underline"
+    >
+      {
+        variant === "h2" ? (
+          <h2 {...headerProps}>{title}</h2>
+        ) : (
+          <h3 {...headerProps}>{title}</h3>
+        )
+      }
+    </a>
+    <div class="flex items-center gap-2.5 my-2 text-sm text-muted">
+      <Datetime {pubDatetime} {modDatetime} {timezone} />
+      <span aria-hidden="true">&bull;</span>
+      <span>{readingTime}</span>
+    </div>
+    <div class="flex gap-4 items-start mt-2">
+      {showImage && heroImage && (
+        <a 
+          href={getPath(id, filePath)}
+          class="flex-shrink-0 hidden sm:block group"
+        >
+          <Image
+            src={heroImage}
+            alt={title}
+            width={140}
+            height={79}
+            class="rounded-md border border-border/60 shadow-xs transition-all duration-200 group-hover:scale-105 object-cover"
+            format="webp"
+            quality={80}
+            loading="lazy"
+            densities={[1, 2]}
+          />
+        </a>
+      )}
+      <p class="text-sm sm:text-base text-foreground/80 flex-1 line-clamp-2 leading-relaxed">{description}</p>
+    </div>
+  </div>
+</li>

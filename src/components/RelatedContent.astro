@@ -1,0 +1,52 @@
+---
+import type { RelatedItem } from "@/utils/getRelatedContent";
+
+export interface Props {
+  items: RelatedItem[];
+}
+
+const { items } = Astro.props;
+---
+
+{
+  items && items.length > 0 && (
+    <section class="my-10 border-t border-border pt-8" data-pagefind-ignore>
+      <h2 class="text-xl font-bold tracking-tight text-foreground sm:text-2xl mb-6">
+        You might also like
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {items.map((item) => {
+          const typeBadgeClass =
+            item.type === "Article"
+              ? "bg-accent/15 text-accent border-accent/30"
+              : item.type === "Product"
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                : "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30";
+
+          return (
+            <div class="group relative flex flex-col justify-between rounded-lg border border-border bg-surface p-4 transition-all hover:border-accent hover:shadow-sm">
+              <div>
+                <span
+                  class:list={[
+                    "inline-block mb-2 rounded-full border px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider font-semibold",
+                    typeBadgeClass,
+                  ]}
+                >
+                  {item.type}
+                </span>
+                <h3 class="text-base font-semibold text-foreground group-hover:text-accent line-clamp-2">
+                  <a href={item.href} class="focus-outline before:absolute before:inset-0">
+                    {item.title}
+                  </a>
+                </h3>
+                <p class="mt-2 text-xs text-foreground/75 line-clamp-2 leading-relaxed">
+                  {item.description}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  )
+}

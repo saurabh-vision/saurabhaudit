@@ -1,0 +1,128 @@
+---
+import { getCollection, type CollectionEntry } from "astro:content";
+import type { GetStaticPathsOptions, Page } from "astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import NewsletterForm from "@/components/NewsletterForm.astro";
+import NoteCard from "@/components/NoteCard.astro";
+import Pagination from "@/components/Pagination.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import { getBreadcrumbItems } from "@/utils/breadcrumbs";
+import { getNotePath } from "@/utils/getNotePath";
+import getSortedNotes from "@/utils/getSortedNotes";
+import noteFilter from "@/utils/noteFilter";
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const PAGE_SIZE = 20;
+  const notes = await getCollection("notes", noteFilter);
+  const sortedNotes = getSortedNotes(notes);
+
+  if (sortedNotes.length === 0) {
+    return [
+      {
+        params: { page: undefined },
+        props: {
+          page: {
+            data: [],
+            start: 0,
+            end: 0,
+            total: 0,
+            currentPage: 1,
+            size: PAGE_SIZE,
+            lastPage: 1,
+            url: { current: "/notes/", prev: undefined, next: undefined },
+          } as unknown as Page<CollectionEntry<"notes">>,
+        },
+      },
+    ];
+  }
+
+  return paginate(sortedNotes, { pageSize: PAGE_SIZE });
+}
+
+const { page } = Astro.props;
+const INTRO_COPY = "Short notes and things I learned.";
+const hasNotes = page.data.length > 0;
+
+const pageTitle = page.currentPage > 1
+  ? `Notes - Page ${page.currentPage} | ${SITE.title}`
+  : `Notes | ${SITE.title}`;
+
+const canonicalURL = page.currentPage > 1
+  ? new URL(page.url.current, Astro.site ?? Astro.url.origin).href
+  : new URL("/notes/", Astro.site ?? Astro.url.origin).href;
+
+const rssLink = {
+  title: `${SITE.title} Notes`,
+  href: new URL("/notes/rss.xml", Astro.site ?? Astro.url.origin).href,
+};
+---
+
+<Layout
+  title={pageTitle}
+  description={SITE.desc}
+  canonicalURL={canonicalURL}
+  noindex={!hasNotes}
+  rssLink={rssLink}
+>
+  <StructuredData
+    type="CollectionPage"
+    noindex={!hasNotes}
+    data={{
+      name: pageTitle,
+      description: SITE.desc,
+      url: canonicalURL,
+      items: page.data.map((n) => ({
+        name: n.data.title,
+        url: new URL(getNotePath(n.id), Astro.site ?? Astro.url.origin).href,
+      })),
+      breadcrumbs: [
+        { name: "Home", url: new URL("/", Astro.site ?? Astro.url.origin).href },
+        { name: "Notes", url: new URL("/notes/", Astro.site ?? Astro.url.origin).href },
+        ...(page.currentPage > 1
+          ? [{ name: `Page ${page.currentPage}`, url: canonicalURL }]
+          : []),
+      ],
+    }}
+  />
+  <Header />
+
+  <main id="main-content" data-pagefind-ignore class="wide-container pb-12">
+    <Breadcrumbs items={getBreadcrumbItems("notes-list")} class="mt-6 mb-2" />
+    <h1 class="text-2xl font-bold sm:text-3xl mt-4">Notes</h1>
+    <p class="mt-2 mb-6 italic text-muted">{INTRO_COPY}</p>
+
+    {
+      !hasNotes ? (
+        <p class="py-12 text-center text-muted">
+          Notes are on the way.
+        </p>
+      ) : (
+        <div data-pagefind-ignore class="space-y-6">
+          <ul class="space-y-6">
+            {page.data.map((note) => (
+              <NoteCard note={note} showFull={true} />
+            ))}
+          </ul>
+        </div>
+      )
+    }
+
+    {
+      hasNotes && page.lastPage > 1 && (
+        <div class="mt-8">
+          <Pagination page={page as any} />
+        </div>
+      )
+    }
+
+    <div class="mt-12">
+      <NewsletterForm variant="inline" />
+    </div>
+  </main>
+
+  <Footer noMarginTop={page.lastPage > 1} />
+</Layout>

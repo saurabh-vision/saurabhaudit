@@ -1,0 +1,54 @@
+---
+import { getCollection } from "astro:content";
+import type { GetStaticPathsOptions } from "astro";
+import Card from "@/components/Card.astro";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import Pagination from "@/components/Pagination.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import Main from "@/layouts/Main.astro";
+import { getPath } from "@/utils/getPath";
+import getSortedPosts from "@/utils/getSortedPosts";
+import postFilter from "@/utils/postFilter";
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const posts = await getCollection("blog", postFilter);
+  const sortedPosts = getSortedPosts(posts);
+  return paginate(sortedPosts, { pageSize: SITE.postPerPage });
+}
+
+const { page } = Astro.props;
+---
+
+<Layout
+  title={`Page ${page.currentPage} | ${SITE.title}`}
+  description={SITE.desc}
+>
+  <StructuredData
+    type="CollectionPage"
+    data={{
+      name: `All Posts - Page ${page.currentPage} | ${SITE.title}`,
+      description: SITE.desc,
+      url: new URL(page.url.current, Astro.site ?? Astro.url.origin).href,
+      items: page.data.map((p) => ({
+        name: p.data.title,
+        url: new URL(getPath(p.id, p.filePath), Astro.site ?? Astro.url.origin).href,
+      })),
+      breadcrumbs: [
+        { name: "Home", url: new URL("/", Astro.site ?? Astro.url.origin).href },
+        { name: "Posts", url: new URL("/posts/", Astro.site ?? Astro.url.origin).href },
+        { name: `Page ${page.currentPage}`, url: new URL(page.url.current, Astro.site ?? Astro.url.origin).href },
+      ],
+    }}
+  />
+  <Header />
+  <Main pageTitle="All Posts" pageDesc={`Page ${page.currentPage} of ${page.lastPage}`}>
+    <ul>
+      {page.data.map((post) => <Card {...post} variant="h3" showImage={false} />)}
+    </ul>
+  </Main>
+  <Pagination {page} />
+  <Footer noMarginTop={page.lastPage > 1} />
+</Layout>

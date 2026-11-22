@@ -1,0 +1,49 @@
+---
+import IconBrandX from "@/assets/icons/IconBrandX.svg";
+import IconGitHub from "@/assets/icons/IconGitHub.svg";
+import IconLinkedin from "@/assets/icons/IconLinkedin.svg";
+import IconMail from "@/assets/icons/IconMail.svg";
+import IconProductHunt from "@/assets/icons/IconProductHunt.svg";
+import { SOCIALS } from "@/constants";
+import LinkButton from "./LinkButton.astro";
+
+export interface Props {
+  centered?: boolean;
+}
+
+const { centered = false } = Astro.props;
+
+const iconMap = {
+  github: IconGitHub,
+  twitter: IconBrandX,
+  linkedin: IconLinkedin,
+  producthunt: IconProductHunt,
+  mail: IconMail,
+};
+
+const activeSocials = SOCIALS.filter(
+  (social) =>
+    social.active &&
+    Boolean(social.href) &&
+    !social.href.includes("TODO") &&
+    social.href !== "mailto:"
+);
+---
+
+<div class:list={["flex flex-wrap items-center gap-1.5 sm:gap-2", centered ? "justify-center" : "justify-center sm:justify-start"]}>
+  {
+    activeSocials.map((social) => {
+      const IconComponent = iconMap[social.icon as keyof typeof iconMap];
+      return (
+        <LinkButton
+          href={social.href}
+          class="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-lg p-2 hover:text-accent hover:bg-surface-2 transition-colors"
+          title={social.linkTitle}
+        >
+          <IconComponent class="inline-block size-5 stroke-current stroke-2 opacity-90" />
+          <span class="sr-only">{social.linkTitle}</span>
+        </LinkButton>
+      );
+    })
+  }
+</div>

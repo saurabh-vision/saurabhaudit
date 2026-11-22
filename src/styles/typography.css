@@ -1,0 +1,120 @@
+@plugin '@tailwindcss/typography';
+
+@layer base {
+  .prose {
+    @apply prose-headings:!text-foreground prose-p:!text-foreground/90 prose-a:!text-foreground prose-a:!decoration-dashed prose-a:underline-offset-4 hover:prose-a:!text-accent prose-blockquote:!border-l-accent prose-blockquote:opacity-90 prose-figcaption:!text-muted prose-strong:!text-foreground prose-code:rounded prose-code:bg-surface-2 prose-code:px-1.5 prose-code:py-0.5 prose-code:!text-foreground prose-code:before:!content-none prose-code:after:!content-none prose-ol:!text-foreground prose-ul:!text-foreground prose-li:marker:!text-accent prose-table:text-foreground prose-hr:!border-border;
+    line-height: 1.75;
+    font-size: 1.0625rem;
+  }
+
+  .prose a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .prose img,
+  .prose figure {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+  }
+
+  .prose table {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+    width: 100%;
+    border-collapse: collapse;
+    margin-block: 1.5rem;
+  }
+
+  .prose th,
+  .prose td {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+  }
+
+  .prose pre {
+    overflow-x: auto;
+    max-width: 100%;
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    margin-block: 1.5rem;
+    position: relative;
+  }
+
+  .prose pre > code {
+    white-space: pre;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .prose blockquote {
+    border-left-width: 4px;
+    padding-left: 1rem;
+    font-style: italic;
+    margin-block: 1.5rem;
+  }
+
+  /* Light mode syntax highlighting contrast improvements */
+  html[data-theme="light"] pre:has(code),
+  html[data-theme="light"] pre:has(code) span,
+  :root pre:has(code),
+  :root pre:has(code) span {
+    --shiki-color-comment: #495057;
+    --shiki-token-comment: #495057;
+  }
+
+  html[data-theme="light"] pre code span[style*="color:#6C757D"],
+  :root pre code span[style*="color:#6C757D"] {
+    color: #495057 !important;
+  }
+
+  /* Dark Theme */
+  html[data-theme="dark"] pre:has(code),
+  html[data-theme="dark"] pre:has(code) span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+  }
+}
+
+.prose .youtube-embed {
+  margin-block: 2rem;
+}
+
+.prose .youtube-embed iframe {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: var(--radius-md);
+}
+
+.diagram {
+  background-color: #ffffff;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  border-radius: var(--radius-md);
+  padding: 1.25rem;
+  overflow-x: auto;
+  margin-block: 2rem;
+  display: block;
+}
+
+.diagram img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin-inline: auto;
+  border: 0 !important;
+}
+
+.diagram figcaption {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: #475569 !important;
+}

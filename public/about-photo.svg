@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 450" width="600" height="450">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#090d16" />
+      <stop offset="60%" stop-color="#111827" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="screenGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="warmLight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.15" />
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background Wall -->
+  <rect width="600" height="450" fill="url(#bg)" rx="16" />
+
+  <!-- Ambient Workspace Lighting -->
+  <circle cx="150" cy="100" r="140" fill="url(#warmLight)" />
+  <circle cx="450" cy="180" r="160" fill="#38bdf8" opacity="0.08" />
+
+  <!-- Developer Desk Surface -->
+  <polygon points="40,360 560,360 580,430 20,430" fill="#1e293b" stroke="#334155" stroke-width="2" />
+
+  <!-- Main Monitor Display -->
+  <rect x="170" y="90" width="260" height="170" rx="8" fill="#0f172a" stroke="#334155" stroke-width="3" />
+  <!-- Monitor Stand -->
+  <rect x="285" y="260" width="30" height="60" fill="#334155" />
+  <polygon points="260,320 340,320 350,330 250,330" fill="#1e293b" stroke="#334155" stroke-width="2" />
+
+  <!-- Code Editor on Screen -->
+  <rect x="180" y="100" width="240" height="150" rx="4" fill="#030712" />
+  <!-- Window Controls -->
+  <circle cx="195" cy="112" r="4" fill="#ef4444" />
+  <circle cx="207" cy="112" r="4" fill="#f59e0b" />
+  <circle cx="219" cy="112" r="4" fill="#10b981" />
+  <!-- Code Lines -->
+  <rect x="195" y="126" width="70" height="5" rx="2" fill="#38bdf8" opacity="0.8" />
+  <rect x="272" y="126" width="45" height="5" rx="2" fill="#f43f5e" opacity="0.7" />
+  <rect x="210" y="138" width="110" height="5" rx="2" fill="#94a3b8" opacity="0.7" />
+  <rect x="210" y="150" width="85" height="5" rx="2" fill="#10b981" opacity="0.7" />
+  <rect x="210" y="162" width="130" height="5" rx="2" fill="#38bdf8" opacity="0.8" />
+  <rect x="225" y="174" width="60" height="5" rx="2" fill="#e2e8f0" opacity="0.6" />
+  <rect x="210" y="186" width="90" height="5" rx="2" fill="#f59e0b" opacity="0.7" />
+  <rect x="195" y="198" width="40" height="5" rx="2" fill="#38bdf8" opacity="0.8" />
+
+  <!-- Laptop on the Left -->
+  <polygon points="70,230 150,210 165,290 85,310" fill="#1e293b" stroke="#475569" stroke-width="2" />
+  <polygon points="75,235 145,218 158,285 88,302" fill="#0f172a" />
+  <rect x="80" y="305" width="90" height="12" rx="4" fill="#334155" />
+
+  <!-- Coffee Mug on the Right -->
+  <rect x="465" y="300" width="28" height="36" rx="4" fill="#0284c7" />
+  <path d="M 493 308 C 504 308, 504 326, 493 326" fill="none" stroke="#0284c7" stroke-width="3" />
+  <path d="M 473 292 C 471 285, 477 282, 475 275" fill="none" stroke="#94a3b8" stroke-width="2" opacity="0.5" stroke-linecap="round" />
+
+  <!-- Mechanical Keyboard -->
+  <polygon points="210,345 390,345 400,380 200,380" fill="#0f172a" stroke="#334155" stroke-width="2" />
+  <!-- Keys grid representation -->
+  <rect x="220" y="352" width="160" height="20" rx="3" fill="#1e293b" opacity="0.8" />
+
+  <!-- Foreground Title / Badge -->
+  <rect x="210" y="405" width="180" height="26" rx="13" fill="#0284c7" opacity="0.9" />
+  <text x="300" y="423" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle" letter-spacing="1">SAURABH // WORKSPACE</text>
+</svg>

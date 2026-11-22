@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 520" width="100%" height="100%">
+  <title>ClipVault Key Hierarchy</title>
+  <desc>Diagram showing the two-tier key derivation and storage architecture for ClipVault vault items and encrypted SQLite clips.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb" />
+    </marker>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="520" fill="#ffffff" />
+
+  <!-- Section 1 Header: Vault Encryption -->
+  <text x="40" y="38" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Vault Items Encryption (AES-256-GCM)</text>
+
+  <!-- Box 1: Passphrase -->
+  <rect x="40" y="55" width="160" height="65" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="120" y="83" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">Master</text>
+  <text x="120" y="105" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">Passphrase</text>
+
+  <!-- Arrow 1 -> 2 -->
+  <line x1="200" y1="87" x2="235" y2="87" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Box 2: PBKDF2 -->
+  <rect x="245" y="55" width="175" height="65" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="332" y="81" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">PBKDF2-HMAC-SHA256</text>
+  <text x="332" y="103" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#475569" text-anchor="middle">600k iters, 16B salt</text>
+
+  <!-- Arrow 2 -> 3 -->
+  <line x1="420" y1="87" x2="455" y2="87" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Box 3: KEK -->
+  <rect x="465" y="55" width="135" height="65" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="532" y="81" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">Key Encryption</text>
+  <text x="532" y="103" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">Key (KEK)</text>
+
+  <!-- Arrow 3 -> 4 -->
+  <line x1="600" y1="87" x2="635" y2="87" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Box 4: VMK -->
+  <rect x="645" y="55" width="125" height="65" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="707" y="81" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">Vault Master</text>
+  <text x="707" y="103" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">Key (VMK)</text>
+
+  <!-- Arrow VMK down to Items -->
+  <line x1="707" y1="120" x2="707" y2="165" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Box 5: Vault Items -->
+  <rect x="625" y="175" width="150" height="70" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="700" y="203" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">AES-256-GCM</text>
+  <text x="700" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#475569" text-anchor="middle">12B IV, 128-bit tag</text>
+
+  <!-- Biometric Shortcut Box -->
+  <rect x="420" y="175" width="170" height="70" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="505" y="203" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="700" fill="#0f172a" text-anchor="middle">Biometric Unlock</text>
+  <text x="505" y="225" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="500" fill="#475569" text-anchor="middle">(Android Keystore)</text>
+
+  <!-- Arrow Biometric to VMK -->
+  <path d="M 590 210 L 615 210 L 615 105 L 635 105" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Divider Line -->
+  <line x1="40" y1="285" x2="760" y2="285" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6 4" />
+
+  <!-- Section 2 Header: Clips Database Encryption -->
+  <text x="40" y="325" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#0f172a">Clips Database Encryption (SQLCipher 4.6.1)</text>
+
+  <!-- Box C1: SecureRandom Key -->
+  <rect x="40" y="350" width="190" height="70" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="135" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">SecureRandom</text>
+  <text x="135" y="402" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">256-bit raw hex key</text>
+
+  <!-- Arrow C1 -> C2 -->
+  <line x1="230" y1="385" x2="285" y2="385" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Box C2: Android Keystore Wrapping -->
+  <rect x="295" y="350" width="200" height="70" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="395" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">Android Keystore</text>
+  <text x="395" y="402" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Key wrapping at rest</text>
+
+  <!-- Arrow C2 -> C3 -->
+  <line x1="495" y1="385" x2="540" y2="385" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Box C3: SQLCipher -->
+  <rect x="550" y="350" width="220" height="70" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="660" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">SQLCipher 4.6.1</text>
+  <text x="660" y="402" font-family="system-ui, -apple-system, sans-serif" font-size="14" font-weight="500" fill="#475569" text-anchor="middle">Room DB (256-bit AES-CBC)</text>
+</svg>

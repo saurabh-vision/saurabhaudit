@@ -1,0 +1,51 @@
+---
+import type { BreadcrumbItem } from "@/utils/breadcrumbs";
+
+export interface Props {
+  items: BreadcrumbItem[];
+  class?: string;
+}
+
+const { items, class: className = "" } = Astro.props;
+---
+
+{
+  items && items.length > 0 && (
+    <nav
+      aria-label="Breadcrumb"
+      class:list={["w-full pt-6 pb-2 text-sm text-foreground/70", className]}
+      data-pagefind-ignore
+    >
+      <ol class="flex flex-wrap items-center gap-1.5 list-none p-0 m-0">
+        {items.map((item, index) => {
+          const isLast = index === items.length - 1;
+          const href = item.url
+            ? item.url.startsWith("http")
+              ? new URL(item.url).pathname || "/"
+              : item.url
+            : undefined;
+
+          return (
+            <li class="inline-flex items-center before:content-['/'] before:mx-2 before:text-foreground/40 first:before:hidden">
+              {isLast || !href ? (
+                <span
+                  class="font-medium text-foreground line-clamp-1"
+                  aria-current="page"
+                >
+                  {item.name}
+                </span>
+              ) : (
+                <a
+                  href={href}
+                  class="hover:text-accent hover:underline focus-outline transition-colors"
+                >
+                  {item.name}
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
+  )
+}

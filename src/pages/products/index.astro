@@ -1,0 +1,97 @@
+---
+import { getCollection } from "astro:content";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import NewsletterForm from "@/components/NewsletterForm.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import { getBreadcrumbItems } from "@/utils/breadcrumbs";
+import { getProductPath } from "@/utils/getProductPath";
+import getSortedProducts from "@/utils/getSortedProducts";
+import productFilter from "@/utils/productFilter";
+
+const INTRO_COPY = "Apps, extensions and tools I build.";
+
+const products = await getCollection("products", productFilter);
+const sortedProducts = getSortedProducts(products);
+
+const activeProducts = sortedProducts.filter(
+  (product) => product.data.status !== "archived"
+);
+const archivedProducts = sortedProducts.filter(
+  (product) => product.data.status === "archived"
+);
+
+const hasProducts = sortedProducts.length > 0;
+const pageTitle = `Products | ${SITE.title}`;
+const pageDesc = SITE.desc;
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDesc}
+  noindex={!hasProducts}
+  canonicalURL={new URL("/products/", Astro.site ?? Astro.url.origin).href}
+>
+  <StructuredData
+    type="CollectionPage"
+    noindex={!hasProducts}
+    data={{
+      name: pageTitle,
+      description: pageDesc,
+      url: new URL("/products/", Astro.site ?? Astro.url.origin).href,
+      items: sortedProducts.map((p) => ({
+        name: p.data.title,
+        url: new URL(getProductPath(p.id), Astro.site ?? Astro.url.origin).href,
+      })),
+      breadcrumbs: getBreadcrumbItems("products-list"),
+    }}
+  />
+  <Header />
+  <main id="main-content" data-pagefind-ignore class="wide-container pb-12">
+    <Breadcrumbs items={getBreadcrumbItems("products-list")} class="mt-6 mb-2" />
+    <h1 class="text-2xl font-bold sm:text-3xl mt-4">Products</h1>
+    <p class="mt-2 mb-6 italic text-muted">{INTRO_COPY}</p>
+
+    {
+      !hasProducts ? (
+        <p class="py-12 text-center text-muted">
+          New products are on the way.
+        </p>
+      ) : (
+        <div data-pagefind-ignore class="space-y-12">
+          {activeProducts.length > 0 && (
+            <section>
+              <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {activeProducts.map((product) => (
+                  <ProductCard product={product} />
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {archivedProducts.length > 0 && (
+            <section class="pt-6 border-t border-border">
+              <h2 class="text-xl font-bold tracking-tight mb-4 text-foreground/80">
+                Archived
+              </h2>
+              <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {archivedProducts.map((product) => (
+                  <ProductCard product={product} />
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      )
+    }
+
+    <div class="mt-12">
+      <NewsletterForm variant="inline" />
+    </div>
+  </main>
+  <Footer />
+</Layout>

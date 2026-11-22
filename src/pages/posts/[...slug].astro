@@ -1,0 +1,14 @@
+---
+import { getCollection } from "astro:content";
+import { getPostAliases } from "@/utils/postAliases";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  return getPostAliases(posts, { preview: import.meta.env.DEV }).map(({ slug, destination }) => ({
+    params: { slug },
+    props: { destination },
+  }));
+}
+
+return Astro.redirect(Astro.props.destination, 301);
+---

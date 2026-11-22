@@ -1,0 +1,249 @@
+---
+import { type CollectionEntry, render } from "astro:content";
+import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
+import IconChevronRight from "@/assets/icons/IconChevronRight.svg";
+import BackButton from "@/components/BackButton.astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Datetime from "@/components/Datetime.astro";
+import EditPost from "@/components/EditPost.astro";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import NewsletterForm from "@/components/NewsletterForm.astro";
+import RelatedContent from "@/components/RelatedContent.astro";
+import ShareLinks from "@/components/ShareLinks.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import Tag from "@/components/Tag.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import { getBreadcrumbItems } from "@/utils/breadcrumbs";
+import { getRelatedPool } from "@/utils/buildRelatedPool";
+import { getPath } from "@/utils/getPath";
+import { getReadingMetrics } from "@/utils/readingTime";
+import { getRelatedContent } from "@/utils/getRelatedContent";
+import { slugifyStr } from "@/utils/slugify";
+import { hasTweetEmbed } from "@/utils/tweetEmbed";
+
+export interface Props {
+  post: CollectionEntry<"blog">;
+  posts: CollectionEntry<"blog">[];
+}
+
+const { post, posts } = Astro.props;
+
+const {
+  title,
+  author,
+  description,
+  ogImage: initOgImage,
+  canonicalURL,
+  pubDatetime,
+  modDatetime,
+  timezone,
+  tags,
+  hideEditPost,
+  heroImage,
+} = post.data;
+
+const { Content } = await render(post);
+const { label: readingTime, minutes: readingTimeMinutes, words: wordCount } = getReadingMetrics(post.body ?? "");
+
+let ogImageUrl: string | undefined;
+
+// Determine OG image source
+if (typeof initOgImage === "string") {
+  ogImageUrl = initOgImage; // Remote OG image (absolute URL)
+} else if (initOgImage?.src) {
+  ogImageUrl = initOgImage.src; // Local asset
+}
+
+// Use dynamic OG image if enabled and no remote|local ogImage
+if (!ogImageUrl && SITE.dynamicOgImage) {
+  ogImageUrl = `${getPath(post.id, post.filePath)}/index.png`;
+}
+
+// Resolve OG image URL (or fallback to SITE.ogImage / default `og.png`)
+const ogImage = ogImageUrl ? new URL(ogImageUrl, Astro.url.origin).href : undefined;
+
+// Generate the canonical URL - always use the full path with year
+const postPath = getPath(post.id, post.filePath, true);
+const computedCanonicalURL =
+  canonicalURL ||
+  (Astro.site ? new URL(postPath, Astro.site).href : new URL(postPath, Astro.url.origin).href);
+
+const loadTwitterWidgets = hasTweetEmbed(post.body ?? "");
+
+const layoutProps = {
+  title: `${title} | ${SITE.title}`,
+  author,
+  description,
+  pubDatetime,
+  modDatetime,
+  canonicalURL: computedCanonicalURL,
+  ogImage,
+  ogType: "article" as const,
+  scrollSmooth: true,
+  loadTwitterWidgets,
+  markdownUrl: `${postPath}.md`,
+};
+
+/* ========== Prev/Next Posts ========== */
+
+const allPosts = posts.map(({ data: { title }, id }) => ({
+  slug: id,
+  title,
+}));
+
+const currentPostIndex = allPosts.findIndex((a) => a.slug === post.id);
+
+const prevPost = currentPostIndex !== 0 ? allPosts[currentPostIndex - 1] : null;
+const nextPost = currentPostIndex !== allPosts.length ? allPosts[currentPostIndex + 1] : null;
+
+const pool = await getRelatedPool();
+const relatedItems = getRelatedContent(
+  {
+    type: "Article",
+    slug: post.id,
+    title,
+    tags,
+    pubDatetime,
+  },
+  pool,
+  3,
+);
+
+---
+
+<Layout {...layoutProps}>
+  <div class="progress-container fixed top-0 z-10 h-1 w-full bg-background" aria-hidden="true">
+    <div id="reading-progress" class="h-1 w-0 bg-accent"></div>
+  </div>
+  <StructuredData 
+    type="PostDetail" 
+    data={{
+      title,
+      description,
+      pubDatetime,
+      modDatetime,
+      url: computedCanonicalURL,
+      image: ogImage || new URL(`${postPath}/index.png`, Astro.site ?? Astro.url.origin).href,
+      keywords: tags.join(", "),
+      wordCount,
+      readingTimeMinutes,
+    }} 
+  />
+  <Header />
+  {SITE.showBackButton && <BackButton />}
+  <div class="reading-container flex justify-start">
+    <button
+      class="focus-outline mt-6 mb-2 inline-flex items-center gap-1.5 text-sm font-medium text-muted hover:text-accent min-h-[44px]"
+      onclick="(() => (history.length > 1 && document.referrer.startsWith(window.location.origin)) ? history.back() : window.location.href = '/')()"
+    >
+      <IconChevronLeft class="inline-block size-4" />
+      <span>Go back</span>
+    </button>
+  </div>
+  <main
+    id="main-content"
+    class="reading-container pb-12"
+    data-pagefind-body
+    data-pagefind-filter="type:Article"
+    data-pagefind-meta="type:Article"
+  >
+    <Breadcrumbs
+      items={getBreadcrumbItems("post", { title, url: computedCanonicalURL })}
+      class="mb-4"
+    />
+    <h1
+      class="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground"
+      data-pagefind-meta="title"
+      style={`view-transition-name: ${post.id}`}
+    >
+      {title}
+    </h1>
+    <div class="flex items-center gap-2.5 my-3 text-sm text-muted">
+      <Datetime
+        pubDatetime={pubDatetime}
+        modDatetime={modDatetime}
+        timezone={timezone}
+        size="lg"
+      />
+      <span aria-hidden="true">&bull;</span>
+      <span>{readingTime}</span>
+    </div>
+    {
+      heroImage && (
+        <div class="my-6">
+          <img
+            src={heroImage}
+            alt={title}
+            class="w-full rounded-lg border border-border/60 shadow-sm object-cover"
+            loading="lazy"
+          />
+        </div>
+      )
+    }
+    <article id="article" class="prose mt-8 w-full max-w-none">
+      <Content />
+    </article>
+
+    <hr class="my-8 border-dashed border-border" />
+
+    <EditPost post={post} hideEditPost={hideEditPost} />
+
+    <div class="flex flex-col-reverse items-center justify-between gap-6 sm:flex-row-reverse sm:items-end">
+      <button
+        id="back-to-top"
+        class="focus-outline min-h-[44px] inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-muted hover:text-accent"
+      >
+        <IconChevronRight class="inline-block rotate-90 size-4" />
+        <span>Back to Top</span>
+      </button>
+
+      <ShareLinks />
+    </div>
+
+    <RelatedContent items={relatedItems} />
+
+    <NewsletterForm variant="card" />
+
+    <div class="my-8 flex justify-between gap-4" data-pagefind-ignore>
+      {
+        prevPost ? (
+          <a
+            id="prev-post-link"
+            href={`/posts/${prevPost.slug}`}
+            class="flex items-center gap-2 hover:opacity-75 focus-outline"
+            rel="prev"
+          >
+            <IconChevronLeft class="inline-block size-6 min-w-[1.5rem]" />
+            <div>
+              <div class="text-xs uppercase text-accent tracking-wider">Previous Post</div>
+              <div class="text-sm font-medium line-clamp-1">{prevPost.title}</div>
+            </div>
+          </a>
+        ) : <div />
+      }
+      {
+        nextPost ? (
+          <a
+            id="next-post-link"
+            href={`/posts/${nextPost.slug}`}
+            class="flex items-center gap-2 text-right hover:opacity-75 focus-outline ml-auto"
+            rel="next"
+          >
+            <div>
+              <div class="text-xs uppercase text-accent tracking-wider">Next Post</div>
+              <div class="text-sm font-medium line-clamp-1">{nextPost.title}</div>
+            </div>
+            <IconChevronRight class="inline-block size-6 min-w-[1.5rem]" />
+          </a>
+        ) : <div />
+      }
+    </div>
+
+    <ul class="my-8 flex flex-wrap gap-2">
+      {tags.map((tag: string) => <Tag tag={slugifyStr(tag)} tagName={tag} />)}
+    </ul>
+  </main>
+  <Footer />
+</Layout>

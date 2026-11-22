@@ -1,0 +1,110 @@
+---
+import { getCollection } from "astro:content";
+import type { GetStaticPathsOptions } from "astro";
+import Breadcrumbs from "@/components/Breadcrumbs.astro";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import NewsletterForm from "@/components/NewsletterForm.astro";
+import NoteCard from "@/components/NoteCard.astro";
+import Pagination from "@/components/Pagination.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+import { getBreadcrumbItems } from "@/utils/breadcrumbs";
+import { getNotePath } from "@/utils/getNotePath";
+import getNotesByTag from "@/utils/getNotesByTag";
+import getUniqueNoteTags from "@/utils/getUniqueNoteTags";
+import noteFilter from "@/utils/noteFilter";
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
+  const PAGE_SIZE = 20;
+  const notes = await getCollection("notes", noteFilter);
+  const tags = getUniqueNoteTags(notes);
+
+  return tags.flatMap(({ tag, tagName }) => {
+    const tagNotes = getNotesByTag(notes, tag);
+    return paginate(tagNotes, {
+      params: { tag },
+      props: { tagName, noteCount: tagNotes.length },
+      pageSize: PAGE_SIZE,
+    });
+  });
+}
+
+const { tag } = Astro.params;
+const { page, tagName, noteCount } = Astro.props;
+
+// Tag pages with fewer than 2 notes get noindex, follow
+const isLowContentTag = noteCount < 2;
+
+const pageTitle = page.currentPage > 1
+  ? `Notes tagged ${tagName} - Page ${page.currentPage} | ${SITE.title}`
+  : `Notes tagged ${tagName} | ${SITE.title}`;
+
+const canonicalURL = page.currentPage > 1
+  ? new URL(page.url.current, Astro.site ?? Astro.url.origin).href
+  : new URL(`/notes/tags/${tag}/`, Astro.site ?? Astro.url.origin).href;
+---
+
+<Layout
+  title={pageTitle}
+  description={`Notes and micro-learnings tagged with ${tagName}.`}
+  canonicalURL={canonicalURL}
+  noindex={isLowContentTag}
+>
+  <StructuredData
+    type="TagCollection"
+    noindex={isLowContentTag}
+    data={{
+      tagName: String(tagName),
+      tag: String(tag),
+      url: canonicalURL,
+      items: page.data.map((n) => ({
+        name: n.data.title,
+        url: new URL(getNotePath(n.id), Astro.site ?? Astro.url.origin).href,
+      })),
+      section: "notes",
+    }}
+  />
+  <Header />
+
+  <main id="main-content" data-pagefind-ignore class="mx-auto w-full max-w-3xl px-4 pb-4">
+    <Breadcrumbs
+      items={getBreadcrumbItems("note-tag", {
+        tagName: String(tagName),
+        tag: String(tag),
+        url: canonicalURL,
+      })}
+      class="mt-6 mb-2"
+    />
+
+    <h1 class="text-2xl font-semibold sm:text-3xl mt-4">
+      Notes tagged #{tagName}
+    </h1>
+    <p class="mt-2 mb-6 italic">
+      {noteCount} {noteCount === 1 ? "note" : "notes"} tagged with "{tagName}"
+    </p>
+
+    <div class="space-y-6">
+      <ul class="space-y-6">
+        {page.data.map((note) => (
+          <NoteCard note={note} showFull={false} />
+        ))}
+      </ul>
+    </div>
+
+    {
+      page.lastPage > 1 && (
+        <div class="mt-8">
+          <Pagination page={page as any} />
+        </div>
+      )
+    }
+
+    <div class="mt-12">
+      <NewsletterForm variant="inline" />
+    </div>
+  </main>
+
+  <Footer noMarginTop={page.lastPage > 1} />
+</Layout>

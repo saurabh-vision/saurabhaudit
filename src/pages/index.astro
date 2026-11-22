@@ -1,0 +1,194 @@
+---
+import { getCollection } from "astro:content";
+import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
+import IconRss from "@/assets/icons/IconRss.svg";
+import Card from "@/components/Card.astro";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import NewsletterForm from "@/components/NewsletterForm.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import NoteCard from "@/components/NoteCard.astro";
+import Socials from "@/components/Socials.astro";
+import StructuredData from "@/components/StructuredData.astro";
+import { SITE } from "@/config";
+import { SOCIALS } from "@/constants";
+import Layout from "@/layouts/Layout.astro";
+import getFeaturedProducts from "@/utils/getFeaturedProducts";
+import getSortedNotes from "@/utils/getSortedNotes";
+import getSortedPosts from "@/utils/getSortedPosts";
+import noteFilter from "@/utils/noteFilter";
+
+const posts = await getCollection("blog");
+const sortedPosts = getSortedPosts(posts);
+const latestPosts = sortedPosts.slice(0, 5);
+
+const allProducts = await getCollection("products");
+const featuredProducts = getFeaturedProducts(allProducts).slice(0, 3);
+
+const allNotes = await getCollection("notes", noteFilter);
+const latestNotes = getSortedNotes(allNotes).slice(0, 3);
+
+function isValuePresent(val?: string | null): boolean {
+  if (!val) return false;
+  const trimmed = val.trim();
+  return trimmed !== "" && trimmed !== "TODO" && !trimmed.startsWith("TODO");
+}
+
+const showTagline = isValuePresent(SITE.tagline);
+const showBio = isValuePresent(SITE.bio);
+const activeSocials = SOCIALS.filter((social) => social.active);
+---
+
+<Layout description={SITE.desc} markdownUrl="/index.md">
+  <StructuredData type="Home" />
+  <Header />
+  <main id="main-content" data-layout="index" data-pagefind-ignore class="wide-container">
+    <!-- Hero section -->
+    <section id="hero" class="py-10 md:py-14 border-b border-border/60">
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 lg:gap-8">
+        <a href="/about" class="block shrink-0 group">
+          <img
+            src="/saurabh-avatar.jpg"
+            alt={SITE.author}
+            class="size-28 sm:size-32 lg:size-36 rounded-full object-cover border-2 border-accent/30 shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:border-accent group-hover:shadow-md"
+            width="144"
+            height="144"
+          />
+        </a>
+        <div class="flex-1 text-center sm:text-left">
+          <div class="flex items-center gap-3 justify-center sm:justify-start">
+            <h1 class="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl text-foreground">
+              Hi, I'm {SITE.author}.
+            </h1>
+            <a
+              target="_blank"
+              href="/rss.xml"
+              class="inline-flex size-11 items-center justify-center rounded-md text-accent transition-colors hover:bg-surface-2 focus-outline"
+              aria-label="RSS Feed"
+              title="RSS Feed"
+            >
+              <IconRss class="size-6 stroke-accent stroke-2" />
+              <span class="sr-only">RSS Feed</span>
+            </a>
+          </div>
+          {showTagline && <p class="mt-2 text-lg sm:text-xl font-medium text-accent">{SITE.tagline}</p>}
+          {showBio && <p class="mt-3 text-base sm:text-lg text-foreground/85 leading-relaxed max-w-[60ch]">{SITE.bio}</p>}
+
+          <div class="mt-6 flex flex-wrap items-center justify-center sm:justify-start gap-3">
+            <a
+              href="/products"
+              class="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-accent px-5 py-2 text-sm font-semibold text-accent-contrast transition-opacity hover:opacity-90 focus-outline shadow-sm"
+            >
+              Products
+            </a>
+            <a
+              href="/posts"
+              class="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-border bg-surface px-5 py-2 text-sm font-semibold text-foreground transition-colors hover:border-accent hover:text-accent focus-outline shadow-sm"
+            >
+              Posts
+            </a>
+            <a
+              href="#subscribe"
+              class="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-border bg-surface px-5 py-2 text-sm font-semibold text-foreground transition-colors hover:border-accent hover:text-accent focus-outline shadow-sm"
+            >
+              Subscribe
+            </a>
+          </div>
+
+          {
+            activeSocials.length > 0 && (
+              <div class="mt-5 flex flex-row items-center justify-center sm:justify-start">
+                <Socials />
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Section: Featured Products -->
+    {
+      featuredProducts.length > 0 && (
+        <section id="featured-products" class="py-10 md:py-14 border-b border-border/60">
+          <div class="flex items-baseline justify-between mb-6">
+            <h2 class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Featured products</h2>
+            <a
+              href="/products"
+              class="group inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-accent hover:underline focus-outline"
+            >
+              All products
+              <IconArrowRight class="inline-block size-4 transition-transform group-hover:translate-x-1" />
+            </a>
+          </div>
+          <ul class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {featuredProducts.map((product) => (
+              <ProductCard product={product} headingLevel="h3" />
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <!-- Section: Latest Notes -->
+    {
+      latestNotes.length > 0 && (
+        <section id="latest-notes" class="py-10 md:py-14 border-b border-border/60">
+          <div class="flex items-baseline justify-between mb-6">
+            <h2 class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Latest notes</h2>
+            <a
+              href="/notes"
+              class="group inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-accent hover:underline focus-outline"
+            >
+              All notes
+              <IconArrowRight class="inline-block size-4 transition-transform group-hover:translate-x-1" />
+            </a>
+          </div>
+          <ul class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {latestNotes.map((note) => (
+              <NoteCard note={note} showFull={false} headingLevel="h3" />
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <!-- Latest posts section -->
+    {
+      latestPosts.length > 0 && (
+        <section id="latest-posts" class="py-10 md:py-14 border-b border-border/60">
+          <div class="flex items-baseline justify-between mb-6">
+            <h2 class="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">Latest posts</h2>
+            <a
+              href="/posts"
+              class="group inline-flex min-h-[44px] items-center gap-1.5 text-sm font-semibold text-accent hover:underline focus-outline"
+            >
+              All posts
+              <IconArrowRight class="inline-block size-4 transition-transform group-hover:translate-x-1" />
+            </a>
+          </div>
+          <ul class="divide-y divide-border/40">
+            {latestPosts.map((post) => (
+              <Card {...post} variant="h3" showImage={false} />
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <!-- Subscribe section -->
+    <section id="subscribe" class="py-10 md:py-14">
+      <NewsletterForm variant="card" />
+    </section>
+  </main>
+  <Footer />
+</Layout>
+
+<script>
+  document.addEventListener("astro:page-load", () => {
+    const indexLayout = (document.querySelector("#main-content") as HTMLElement)
+      ?.dataset?.layout;
+    if (indexLayout) {
+      sessionStorage.setItem("backUrl", "/");
+    }
+  });
+</script>

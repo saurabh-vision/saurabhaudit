@@ -1,0 +1,128 @@
+---
+import { render, type CollectionEntry } from "astro:content";
+import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
+import Datetime from "./Datetime.astro";
+import { getNoteExcerpt } from "@/utils/getNoteExcerpt";
+import { getNotePath } from "@/utils/getNotePath";
+import { slugifyStr } from "@/utils/slugify";
+
+export interface Props {
+  note: CollectionEntry<"notes">;
+  showFull?: boolean;
+  headingLevel?: "h2" | "h3";
+}
+
+const { note, showFull = false, headingLevel = "h2" } = Astro.props;
+const { title, pubDatetime, modDatetime, tags = [], sourceUrl, sourceTitle } = note.data;
+
+const notePath = getNotePath(note.id);
+const { Content } = await render(note);
+
+const excerpt = getNoteExcerpt({
+  title,
+  description: note.data.description,
+  body: note.body,
+});
+
+let sourceHost = "";
+if (sourceUrl) {
+  try {
+    sourceHost = new URL(sourceUrl).hostname.replace(/^www\./, "");
+  } catch {
+    sourceHost = sourceUrl;
+  }
+}
+const sourceLabel = sourceTitle || sourceHost;
+---
+
+<li
+  class="flex flex-col justify-between rounded-lg border border-border bg-surface p-5 sm:p-6 transition-all hover:border-accent/40 hover:shadow-sm"
+>
+  <div>
+    <!-- Title -->
+    {
+      headingLevel === "h2" ? (
+        <h2 class="text-xl font-bold tracking-tight text-foreground">
+          <a
+            href={notePath}
+            class="hover:text-accent decoration-dashed underline-offset-4 hover:underline"
+          >
+            {title}
+          </a>
+        </h2>
+      ) : (
+        <h3 class="text-xl font-bold tracking-tight text-foreground">
+          <a
+            href={notePath}
+            class="hover:text-accent decoration-dashed underline-offset-4 hover:underline"
+          >
+            {title}
+          </a>
+        </h3>
+      )
+    }
+
+    <!-- Metadata: Date and Source link -->
+    <div class="mt-2 flex flex-wrap items-center gap-3 text-sm text-foreground/75">
+      <Datetime
+        pubDatetime={pubDatetime}
+        modDatetime={modDatetime}
+        timezone={undefined}
+      />
+      {
+        sourceUrl && (
+          <span class="inline-flex items-center gap-1 text-xs opacity-80">
+            <span aria-hidden="true">&bull;</span>
+            <span>Source:</span>
+            <a
+              href={sourceUrl}
+              target="_blank"
+              rel="noopener"
+              class="font-mono underline hover:text-accent"
+            >
+              {sourceLabel}
+            </a>
+          </span>
+        )
+      }
+    </div>
+
+    <!-- Content: full rendered body or truncated excerpt -->
+    {
+      showFull ? (
+        <article class="prose mt-5 max-w-none text-foreground/90 leading-relaxed">
+          <Content />
+        </article>
+      ) : (
+        <div class="mt-3">
+          <p class="text-foreground/80 leading-relaxed">{excerpt}</p>
+          <div class="mt-3">
+            <a
+              href={notePath}
+              class="group inline-flex items-center gap-1 text-sm font-medium text-accent hover:underline focus-outline"
+            >
+              Read
+              <IconArrowRight class="inline-block size-4 transition-transform group-hover:translate-x-0.5" />
+            </a>
+          </div>
+        </div>
+      )
+    }
+  </div>
+
+  <!-- Tags -->
+  {
+    tags && tags.length > 0 && (
+      <div class="mt-5 flex flex-wrap gap-2 pt-3 border-t border-border/60">
+        {tags.map((tag: string) => (
+          <a
+            href={`/notes/tags/${slugifyStr(tag)}/`}
+            class="inline-block rounded px-2.5 py-0.5 text-xs bg-muted/40 border border-border text-foreground/80 hover:border-accent hover:text-accent focus-outline"
+          >
+            #{tag}
+          </a>
+        ))}
+      </div>
+    )
+  }
+</li>

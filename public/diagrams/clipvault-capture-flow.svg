@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 420" width="100%" height="100%">
+  <title>ClipVault Clipboard Capture Flow</title>
+  <desc>Flowchart showing text copy capture through the ClipVault keyboard or manual fallback routes.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb" />
+    </marker>
+  </defs>
+  <!-- Background -->
+  <rect width="800" height="420" fill="#ffffff" />
+
+  <!-- Start Box -->
+  <rect x="40" y="175" width="200" height="70" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="140" y="217" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="600" fill="#0f172a" text-anchor="middle">User copies text</text>
+
+  <!-- Arrow Start -> Decision -->
+  <line x1="240" y1="210" x2="315" y2="210" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- Decision Diamond -->
+  <polygon points="440,120 560,210 440,300 320,210" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="440" y="202" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#0f172a" text-anchor="middle">ClipVault Keyboard</text>
+  <text x="440" y="226" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="600" fill="#0f172a" text-anchor="middle">active?</text>
+
+  <!-- Arrow YES (Top Branch) -->
+  <path d="M 440 120 L 440 70 L 565 70" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="455" y="95" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#0f172a">YES</text>
+
+  <!-- YES Target Box -->
+  <rect x="575" y="35" width="195" height="70" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="672" y="66" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#0f172a" text-anchor="middle">Auto-saved and</text>
+  <text x="672" y="88" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#0f172a" text-anchor="middle">categorized in Clips</text>
+
+  <!-- Arrow NO (Bottom Branch) -->
+  <path d="M 440 300 L 440 350 L 535 350" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow)" />
+  <text x="455" y="335" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#0f172a">NO</text>
+
+  <!-- NO Target Box -->
+  <rect x="545" y="300" width="225" height="100" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+  <text x="657" y="330" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#0f172a" text-anchor="middle">Share &gt; ClipVault /</text>
+  <text x="657" y="355" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#0f172a" text-anchor="middle">Save to ClipVault menu /</text>
+  <text x="657" y="380" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#0f172a" text-anchor="middle">manual / camera OCR</text>
+</svg>

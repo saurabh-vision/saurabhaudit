@@ -1,0 +1,70 @@
+---
+import postFilter from "@/utils/postFilter";
+import { getCollection } from "astro:content";
+import Card from "@/components/Card.astro";
+import { postsByYear, postsByMonth } from "@/utils/groupPosts";
+import Footer from "@/components/Footer.astro";
+import Header from "@/components/Header.astro";
+import { SITE } from "@/config";
+import Layout from "@/layouts/Layout.astro";
+
+// Redirect to 404 page if `showArchives` config is false
+if (!SITE.showArchives) {
+  return Astro.redirect("/404");
+}
+
+const posts = await getCollection("blog", postFilter);
+
+const months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+---
+
+<Layout title={`Archives | ${SITE.title}`} markdownUrl="/archives.md">
+  <Header />
+  <main id="main-content" class="wide-container pb-12">
+    <h1 class="text-2xl font-bold sm:text-3xl mt-8">Archives</h1>
+    <p class="mt-2 mb-6 italic text-muted">Browse all posts by year and month</p>
+    {
+      postsByYear(posts).map(([year, yearGroup]) => (
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold mb-6 border-b border-accent pb-2">
+            {year}
+            <sup class="text-sm ml-1">{yearGroup.length}</sup>
+          </h2>
+          {postsByMonth(yearGroup).map(([month, monthGroup]) => (
+            <div class="mt-8">
+              <h3 class="text-xl font-bold mb-4">
+                {months[month - 1]}
+                <sup class="text-sm ml-1">{monthGroup.length}</sup>
+              </h3>
+              <ul>
+                {monthGroup
+                  .sort(
+                    (a, b) =>
+                      Math.floor(b.data.pubDatetime.getTime() / 1000) -
+                      Math.floor(a.data.pubDatetime.getTime() / 1000),
+                  )
+                  .map((data) => (
+                    <Card {...data} />
+                  ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      ))
+    }
+  </main>
+  <Footer />
+</Layout>
