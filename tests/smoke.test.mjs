@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
 import http from "node:http";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { runSmoke } from "../scripts/smoke.mjs";
@@ -18,7 +27,61 @@ const MIME_TYPES = {
   ".css": "text/css",
 };
 
-function createStaticDistServer(distDir = "dist") {
+function setupSmokeDistFixture() {
+  const tmpDir = mkdtempSync(join(tmpdir(), "smoke-dist-"));
+  const distDir = join(tmpDir, "dist");
+  mkdirSync(distDir, { recursive: true });
+  mkdirSync(join(distDir, "notes"), { recursive: true });
+  mkdirSync(join(distDir, "posts"), { recursive: true });
+  mkdirSync(join(distDir, "products"), { recursive: true });
+  mkdirSync(join(distDir, "about"), { recursive: true });
+  mkdirSync(join(distDir, "pagefind"), { recursive: true });
+
+  writeFileSync(
+    join(distDir, "index.html"),
+    "<!doctype html><html><head><title>Saurabh</title><link rel='canonical' href='https://saurabhaudit.com/'><meta http-equiv='Content-Security-Policy' content=\"default-src 'self'\"></head><body><h1>Saurabh</h1><p>Android apps, open-source projects and notes on how systems scale.</p></body></html>",
+  );
+  writeFileSync(join(distDir, "404.html"), "<!doctype html><html><h1>404 Not Found</h1></html>");
+  writeFileSync(
+    join(distDir, "robots.txt"),
+    "User-agent: *\nAllow: /\nSitemap: http://127.0.0.1/sitemap-index.xml\n",
+  );
+  writeFileSync(join(distDir, "rss.xml"), "<rss><channel><title>RSS</title></channel></rss>");
+  writeFileSync(
+    join(distDir, "notes", "rss.xml"),
+    "<rss><channel><title>Notes</title></channel></rss>",
+  );
+  writeFileSync(join(distDir, "about", "index.html"), "<html><body>About</body></html>");
+  writeFileSync(join(distDir, "posts", "index.html"), "<html><body>Posts</body></html>");
+  writeFileSync(join(distDir, "products", "index.html"), "<html><body>Products</body></html>");
+  writeFileSync(join(distDir, "notes", "index.html"), "<html><body>Notes</body></html>");
+  writeFileSync(join(distDir, "og-default.png"), "mock-png");
+  writeFileSync(join(distDir, "pagefind", "pagefind.js"), "// pagefind");
+  writeFileSync(
+    join(distDir, "sitemap-index.xml"),
+    `<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>http://127.0.0.1/sitemap-0.xml</loc></sitemap>
+</sitemapindex>`,
+  );
+  writeFileSync(
+    join(distDir, "sitemap-0.xml"),
+    `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>http://127.0.0.1/</loc></url>
+  <url><loc>http://127.0.0.1/about/</loc></url>
+</urlset>`,
+  );
+
+  return {
+    distDir,
+    cleanup() {
+      rmSync(tmpDir, { recursive: true, force: true });
+    },
+  };
+}
+
+function createStaticDistServer(distDir) {
   return http.createServer((req, res) => {
     let reqPath = req.url.split("?")[0].split("#")[0];
     if (reqPath === "/") reqPath = "/index.html";
@@ -53,7 +116,8 @@ function createStaticDistServer(distDir = "dist") {
 }
 
 test("smoke test: runs successfully against a local static dist server", async () => {
-  const server = createStaticDistServer("dist");
+  const fixture = setupSmokeDistFixture();
+  const server = createStaticDistServer(fixture.distDir);
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const port = server.address().port;
   const baseUrl = `http://127.0.0.1:${port}`;
@@ -64,10 +128,17 @@ test("smoke test: runs successfully against a local static dist server", async (
       allowHttp: true,
       logger: silentLogger,
     });
+    if (!passed) {
+      console.error(
+        "Failed checks:",
+        results.filter((r) => !r.pass),
+      );
+    }
     assert.equal(passed, true, "Smoke test must pass against valid dist server");
     assert.ok(results.length >= 10, "Smoke test must execute all verification checks");
   } finally {
     server.close();
+    fixture.cleanup();
   }
 });
 
