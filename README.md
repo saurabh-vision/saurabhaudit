@@ -95,7 +95,6 @@ The site is hosted on GitHub Pages and automatically deployed on every push to `
 
 ## Use and Attribution
 
-- **Code**: All code snippets, templates, styles, and software logic are licensed under the [MIT License](LICENSE) (Copyright 2026 Saurabh Audit, Copyright 2025 Peter Steinberger).
+- **Code**: All code snippets, templates, styles, and software logic are licensed under the [MIT License](LICENSE) (Copyright 2026 Saurabh Audit).
 - **Content**: All original written content, articles, micro-notes, and product descriptions are licensed under the Creative Commons Attribution 4.0 International License ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). When sharing or adapting content, attribute to:
   > Saurabh Audit, https://saurabhaudit.com
-- Built upon the open-source theme from [steipete.me](https://github.com/steipete/steipete.me) by Peter Steinberger (MIT License), originally based on AstroPaper.
